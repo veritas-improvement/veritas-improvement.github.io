@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VERITAS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header id="header">
+    <div class="topbar">
+      <a class="navbar-logo" href="#top">
+        <span class="logo-mark">Veritas</span>
+      </a>
+      <nav class="top-nav" aria-label="External links">
+        <a href="./VideoMimic.pdf" target="_blank" rel="noopener">PDF</a>
+        <a href="https://github.com/hongsukchoi/VideoMimic" target="_blank" rel="noopener">Code</a>
+        <a class="top-nav-external" href="https://arxiv.org/abs/2505.03729" target="_blank" rel="noopener">arXiv ↗</a>
+      </nav>
+    </div>
+  </header>
+
+  <aside class="side-menu" aria-label="Article contents">
+    <div class="side-menu-inner">
+      <nav class="side-toc">
+        <ul>
+          <li><a href="#abstract" data-target="abstract">Abstract</a></li>
+          <li><a href="#method" data-target="method">Method</a></li>
+          <li><a href="#results" data-target="results">Simulation Results</a></li>
+          <li><a href="#real-results" data-target="real-results">Real-world Results</a></li>
+          <li><a href="#bibtex" data-target="bibtex">BibTeX</a></li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
+
+  <main id="top" class="article-wrap">
+    <article class="article">
+
+      <header class="paper-header">
+        <h1 class="paper-title">
+          <span class="title-line">Visual Verification Enables Inference-time Steering</span>
+          <span class="title-line">and Autonomous Policy Improvement</span>
+        </h1>
+
+        <p class="paper-authors">
+          <span class="author"><a href="https://robo-alex.github.io/" target="_blank" rel="noopener">Mingtong Zhang</a></span>
+          <span class="author-sep">·</span>
+          <span class="author"><a href="https://robodhruv.github.io/" target="_blank" rel="noopener">Dhruv Shah</a></span>
+        </p>
+        <p class="paper-affiliations">Princeton University</p>
+        <p class="paper-venue">RSS 2026</p>
+
+        <div class="paper-links-row">
+          <a href="https://arxiv.org/abs/2505.03729" target="_blank" rel="noopener">[arxiv]</a>
+          <a href="https://github.com/hongsukchoi/VideoMimic" target="_blank" rel="noopener">[code]</a>
+        </div>
+      </header>
+
+      <section class="content">
+
+        <figure class="hero-figure">
+          <img src="./figs/teaser_veritas-1.png" alt="Diagram: a generator policy proposes rollouts; a gradient-free visual verifier scores them; selected rollouts steer the policy and feed back as training data.">
+          <figcaption>
+            <strong>Overview of VERITAS.</strong><br>A pre-trained generalist policy acts as a stochastic generator, sampling multiple short-horizon action chunks at each decision step. A gradient-free visual verifier scores these candidates based on task alignment and physical plausibility, and the highest-scoring action is executed, yielding immediate performance gains at inference time. Successful verifier-guided rollouts are logged and reused for offline policy improvement, forming a data flywheel that distills verification-time reasoning into the policy and enables continual improvement with minimal human supervision.
+          </figcaption>
+        </figure>
+
+        <h2 id="abstract">Abstract</h2>
+
+        <p>
+          Robots deployed in the real world should learn from their experience and improve over time. This requires a mechanism of practicing and learning from feedback. In this paper, we propose VERITAS, a generator–verifier framework for generalist robot policies for inference-time policy steering and self-improvement. We use a pre-trained generalist robot policy as a “generator” and pair it with a gradient-free “visual verifier” that evaluates actions at inference time.
+        </p>
+
+        <p>
+          This framework enables inference-time steering that improves policy performance without additional training. We demonstrate that inference-time verification consistently outperforms vanilla generalists without training on additional demonstration data.
+        </p>
+
+        <p>
+          Additionally, we demonstrate that the verified rollouts provide effective supervision for offline policy improvement: policies fine-tuned on verified self-generated trajectories achieve consistent performance gains. Notably, we find that post-training with verified rollouts achieves comparable efficiency to expert demonstrations, while requiring no human interventions. Our results highlight inference-time verification as a practical and scalable mechanism for improving robotic policies during deployment.
+        </p>
+
+        <h2 id="method">Method</h2>
+
+        <figure class="hero-figure">
+          <img src="./figs/method-1.png" alt="Method diagram for VERITAS: a generator policy proposes multiple action chunks, a gradient-free visual verifier scores them, and the top-scoring action is executed; verified rollouts feed back into offline policy fine-tuning.">
+          <figcaption>
+            <strong>The overview of VERITAS for inference-time steering.</strong><br>At inference time, a two-call VLM scheme is used to construct a visual verifier. First, given the initial observation and task instruction, the VLM identifies the target object to focus on, a detection model is then used to localize the object in image space. Second, conditioned on the object location, instruction, and initial observation, the VLM proposes a sequence of pixel-space waypoints that define a full visual trace for the task. During execution, the policy samples multiple action candidates, which are scored based on how well their resulting motion follows the proposed visual trace, and the best candidate is selected for execution. Successful verifier-guided rollouts are logged and used as training data for offline policy fine-tuning, resulting in an improved policy with higher task performance.
+          </figcaption>
+        </figure>
+
+        <p>
+          The loop is simple. A pre-trained generalist policy emits candidate action trajectories from the current observation. A gradient-free visual verifier evaluates each candidate against task semantics — no extra training, no labels — and the top-scoring trajectory is executed. Top-scoring rollouts are also retained as supervision; fine-tuning on them compounds the gains.
+        </p>
+
+        <ol class="mechanism-steps">
+          <li>
+            <span class="step-num">i.</span>
+            <span class="step-body"><strong>Generator proposes.</strong> A pre-trained policy emits candidate action trajectories from the current observation.</span>
+          </li>
+          <li>
+            <span class="step-num">ii.</span>
+            <span class="step-body"><strong>Verifier scores.</strong> A gradient-free visual verifier evaluates candidates without additional training or labeled data.</span>
+          </li>
+          <li>
+            <span class="step-num">iii.</span>
+            <span class="step-body"><strong>Policy improves.</strong> Top-scoring rollouts become supervision; the policy is fine-tuned using the verified rollouts and the performance is improved.</span>
+          </li>
+        </ol>
+
+        <h2 id="results">Simulation Results</h2>
+
+        <p>
+          The policy trained in simulation under verifier-in-the-loop steering demonstrates robust and diverse whole-body control behaviors. Four representative rollouts are shown below; each clip is selected and steered at inference time by the visual verifier.
+        </p>
+
+        <div class="video-gallery-section" id="simGallerySection">
+          <div class="video-gallery-container">
+            <div class="video-gallery" id="videoGallerySim">
+              <figure class="result-card">
+                <video class="gallery-video" src="./videos/sim/1.mp4" autoplay muted playsinline loop></video>
+                <figcaption>Put eggplant in basket.</figcaption>
+              </figure>
+              <figure class="result-card">
+                <video class="gallery-video" src="./videos/sim/2.mp4" autoplay muted playsinline loop></video>
+                <figcaption>Pick carrot on plate.</figcaption>
+              </figure>
+              <figure class="result-card">
+                <video class="gallery-video" src="./videos/sim/3.mp4" autoplay muted playsinline loop></video>
+                <figcaption>Pick spoon on towel.</figcaption>
+              </figure>
+              <figure class="result-card">
+                <video class="gallery-video" src="./videos/sim/4.mp4" autoplay muted playsinline loop></video>
+                <figcaption>Stack green block on yellow block.</figcaption>
+              </figure>
+            </div>
+          </div>
+          <div class="gallery-caption-container">
+            <div class="gallery-nav-controls">
+              <button class="gallery-nav left" id="scrollLeftBtnSim" aria-label="Previous">←</button>
+              <button class="gallery-nav right" id="scrollRightBtnSim" aria-label="Next">→</button>
+            </div>
+            <p class="figure-caption gallery-caption">
+              <span class="figure-label">Simulation results.</span>
+              Verified rollouts across SIMPLER tasks.
+            </p>
+          </div>
+        </div>
+
+        <figure class="hero-figure is-small">
+          <img src="./figs/finetuning_barplot_website.png" alt="Bar plot of simulation success rates comparing the raw policy, inference-time steering, and the policy fine-tuned on verifier-curated autonomous data.">
+          <figcaption>
+            <strong>Simulation success rates of the raw policy, the inference-time steering and the same policy fine-tuned on verifier curated autonomous data.</strong><br>While verification improves performance at inference time through action steering, fine-tuning on the collected verifier curated rollouts successfully distills these gains back into the policy weights.
+          </figcaption>
+        </figure>
+
+        <h2 id="real-results">Real-world Results</h2>
+
+        <div class="video-gallery-section is-slider" id="realDemoGallerySection">
+          <div class="video-gallery-container">
+            <div class="video-gallery" id="videoGalleryRealDemo">
+              <figure class="result-card is-active">
+                <div class="video-frame">
+                  <video class="gallery-video" src="./videos/real/veritas_mouse_demo.mp4" autoplay muted playsinline loop preload="metadata"></video>
+                  <span class="video-instruction">Pick up the mouse and place it into the green bowl</span>
+                </div>
+              </figure>
+              <figure class="result-card">
+                <div class="video-frame">
+                  <video class="gallery-video" src="./videos/real/veritas_demo_marker.mp4" autoplay muted playsinline loop preload="metadata"></video>
+                  <span class="video-instruction">Insert the marker into the mug</span>
+                </div>
+              </figure>
+              <figure class="result-card">
+                <div class="video-frame">
+                  <video class="gallery-video" src="./videos/real/veritas_demo_carrot.mp4" autoplay muted playsinline loop preload="metadata"></video>
+                  <span class="video-instruction">Put the carrot on the plate</span>
+                </div>
+              </figure>
+              <figure class="result-card">
+                <div class="video-frame">
+                  <video class="gallery-video" src="./videos/real/veritas_demo_tape.mp4" autoplay muted playsinline loop preload="metadata"></video>
+                  <span class="video-instruction">Put the tape into the wooden box</span>
+                </div>
+              </figure>
+            </div>
+          </div>
+          <div class="gallery-caption-container">
+            <div class="gallery-nav-controls">
+              <button class="gallery-nav left" id="scrollLeftBtnReal" aria-label="Previous">←</button>
+              <button class="gallery-nav right" id="scrollRightBtnReal" aria-label="Next">→</button>
+            </div>
+            <p class="figure-caption gallery-caption">
+              <strong>VERITAS in real-world deployment.</strong> Verifier-in-the-loop rollouts on a real robot under inference-time steering.
+            </p>
+          </div>
+        </div>
+
+        <figure class="hero-figure">
+          <img src="./figs/online_steering_real_website.png" alt="Bar chart showing real-world success rates: VERITAS improves over the base policy on average by 35%, while PIVOT's naïve action primitives fail to complete tasks.">
+          <figcaption>
+            <strong>Inference-time verification yields large real-world gains.</strong><br>An average of 35% improvement in real-world deployment, without any policy fine-tuning. These gains highlight the effectiveness of inference-time computation alone in improving generalist policy performance. Note that PIVOT's naïve action primitives can not achieve successful outcomes, whereas a trained policy with a strong action prior performs effectively, highlighting the importance of good action priors for improving performance.
+          </figcaption>
+        </figure>
+
+        <figure class="hero-figure">
+          <img src="./figs/real_world_results_website.png" alt="Chart comparing policies fine-tuned on verifier-curated autonomous rollouts versus human teleoperation data, showing comparable data efficiency.">
+          <figcaption>
+            <strong>Verifier-curated autonomous rollouts can match the data efficiency of costly human teleoperation.</strong><br>By converting deployment-time execution into effective training data, our approach enables scalable policy improvement without requiring continuous expert supervision. These findings suggest that execution-time verification not only improves performance online, but also enables a practical pathway for continual policy improvement by converting deployment experience into effective training data.
+          </figcaption>
+        </figure>
+
+        <h2 id="bibtex">BibTeX</h2>
+
+        <p>
+          If this work is useful for your research, please consider citing:
+        </p>
+
+        <pre class="bibtex"><code>@inproceedings{veritas,
+  title     = {Visual Verification Enables Inference-time Steering and Autonomous Policy Improvement},
+  author    = {Zhang, Mingtong and Shah, Dhruv},
+  booktitle = {Proceedings of Robotics: Science and Systems (RSS)},
+  year      = {2026}
+}</code></pre>
+
+      </section>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span>© 2026 Princeton University</span>
+      <span class="footer-sep">·</span>
+      <a href="https://github.com/videomimic-1/videomimic-1.github.io" target="_blank" rel="noopener">Source</a>
+    </div>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const galleries = [
+        {
+          sectionId: 'simGallerySection',
+          galleryInnerId: 'videoGallerySim',
+          scrollLeftBtnId: 'scrollLeftBtnSim',
+          scrollRightBtnId: 'scrollRightBtnSim'
+        },
+        {
+          sectionId: 'realDemoGallerySection',
+          galleryInnerId: 'videoGalleryRealDemo',
+          scrollLeftBtnId: 'scrollLeftBtnReal',
+          scrollRightBtnId: 'scrollRightBtnReal'
+        }
+      ];
+
+      galleries.forEach(cfg => {
+        const section = document.getElementById(cfg.sectionId);
+        if (!section) return;
+        const inner = document.getElementById(cfg.galleryInnerId);
+        const left = document.getElementById(cfg.scrollLeftBtnId);
+        const right = document.getElementById(cfg.scrollRightBtnId);
+        if (!(inner && left && right)) return;
+
+        if (section.classList.contains('is-slider')) {
+          // Discrete switch — show one card at a time, pause the others.
+          const cards = inner.querySelectorAll('.result-card');
+          if (!cards.length) return;
+          let idx = Math.max(0, Array.from(cards).findIndex(c => c.classList.contains('is-active')));
+          const show = (i) => {
+            cards.forEach((card, j) => {
+              const active = i === j;
+              card.classList.toggle('is-active', active);
+              const video = card.querySelector('video');
+              if (!video) return;
+              if (active) {
+                video.currentTime = 0;
+                video.play().catch(() => {});
+              } else {
+                video.pause();
+              }
+            });
+          };
+          show(idx);
+          left.addEventListener('click', () => { idx = (idx - 1 + cards.length) % cards.length; show(idx); });
+          right.addEventListener('click', () => { idx = (idx + 1) % cards.length; show(idx); });
+        } else {
+          // Scroll mode (legacy — used by the 2x2 sim grid; nav arrows are hidden).
+          const container = section.querySelector('.video-gallery-container');
+          if (!container) return;
+          const amount = () => (inner.firstElementChild?.offsetWidth || 320) + 24;
+          left.addEventListener('click', () => container.scrollBy({ left: -amount(), behavior: 'smooth' }));
+          right.addEventListener('click', () => container.scrollBy({ left: amount(), behavior: 'smooth' }));
+        }
+      });
+
+      // Side-menu scrollspy: highlight the section currently in view.
+      const tocLinks = document.querySelectorAll('.side-toc a[data-target]');
+      const byId = new Map();
+      tocLinks.forEach(link => byId.set(link.dataset.target, link));
+      const sections = Array.from(byId.keys())
+        .map(id => document.getElementById(id))
+        .filter(Boolean);
+
+      if (sections.length && 'IntersectionObserver' in window) {
+        const setActive = (id) => {
+          tocLinks.forEach(l => l.classList.toggle('is-active', l.dataset.target === id));
+        };
+        const observer = new IntersectionObserver((entries) => {
+          // Pick the topmost intersecting section.
+          const visible = entries
+            .filter(e => e.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+          if (visible[0]) setActive(visible[0].target.id);
+        }, { rootMargin: '-20% 0px -65% 0px', threshold: 0 });
+        sections.forEach(s => observer.observe(s));
+        setActive(sections[0].id);
+      }
+    });
+  </script>
+</body>
+</html>
