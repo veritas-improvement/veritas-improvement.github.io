@@ -80,31 +80,6 @@ a { color: inherit; }
 }
 .navbar-logo:hover .logo-mark { opacity: 0.75; }
 
-.top-nav {
-  display: flex;
-  gap: 1.6rem;
-  align-items: center;
-}
-.top-nav a {
-  font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 400;
-  letter-spacing: -0.01em;
-  color: var(--fg1);
-  text-decoration: none;
-  transition: opacity 0.3s ease;
-}
-.top-nav a:hover {
-  text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--fg) 22%, transparent);
-  text-underline-offset: 3px;
-}
-.top-nav-external { color: var(--fg3); }
-
-@media (max-width: 720px) {
-  .top-nav { gap: 1rem; }
-}
-
 /* =========================================================
    SIDE MENU
    ========================================================= */
