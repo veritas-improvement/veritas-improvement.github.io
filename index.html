@@ -89,7 +89,7 @@
         </figure>
 
         <p>
-          The loop is simple. A pre-trained generalist policy emits candidate action trajectories from the current observation. A gradient-free visual verifier evaluates each candidate against task semantics — no extra training, no labels — and the top-scoring trajectory is executed. Top-scoring rollouts are also retained as supervision; fine-tuning on them compounds the gains.
+          The loop is simple. A pre-trained generalist policy emits candidate action trajectories from the current observation. A gradient-free visual verifier evaluates each candidate against task semantics — no extra training, no labels — and the top-scoring trajectory is executed. Top-scoring rollouts are also retained as supervision; fine-tuning on them distills the verification-time reasoning into the policy.
         </p>
 
         <ol class="mechanism-steps">
